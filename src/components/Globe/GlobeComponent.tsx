@@ -70,37 +70,26 @@ export const GlobeComponent: React.FC<GlobeComponentProps> = ({
         ${banInfo ? `<div style="font-size: 0.9rem; line-height: 1.5; opacity: 0.9; padding-top: 0.5rem; border-top: 1px solid rgba(255, 255, 255, 0.1);">
           ${banInfo.details}
         </div>` : `<div style="font-size: 0.9rem; opacity: 0.7; font-style: italic;">
-          No TikTok restrictions in place
+          No restrictions in place
         </div>`}
       </div>
     `;
   };
 
-  // Generate layer data using helpers
+  // Generate layer data
   const pointsData = useMemo(() => 
-    activeLayers.includes('points') 
-      ? generatePointsData(banData, config.points.color, config.points.radius)
-      : [], 
-    [activeLayers, banData, config.points]
+    activeLayers.includes('points') ? generatePointsData(banData, config) : [], 
+    [activeLayers, banData, config]
   );
 
   const arcsData = useMemo(() => 
-    activeLayers.includes('arcs')
-      ? generateArcsData(banData, config.arcs.color)
-      : [],
-    [activeLayers, banData, config.arcs.color]
+    activeLayers.includes('arcs') ? generateArcsData(banData, config) : [],
+    [activeLayers, banData, config]
   );
 
   const ringsData = useMemo(() => 
-    activeLayers.includes('rings')
-      ? generateRingsData(
-          banData,
-          config.rings.maxRadius,
-          config.rings.propagationSpeed,
-          config.rings.repeatPeriod
-        )
-      : [],
-    [activeLayers, banData, config.rings]
+    activeLayers.includes('rings') ? generateRingsData(banData, config) : [],
+    [activeLayers, banData, config]
   );
 
   const handlePolygonClick = (polygon: any, event: MouseEvent) => {
@@ -142,7 +131,7 @@ export const GlobeComponent: React.FC<GlobeComponentProps> = ({
     
     // Rings layer
     ringsData: ringsData,
-    ringColor: () => config.rings.color,
+    ringColor: (d: any) => d.color,
     ringMaxRadius: 'maxR',
     ringPropagationSpeed: 'propagationSpeed',
     ringRepeatPeriod: 'repeatPeriod',
