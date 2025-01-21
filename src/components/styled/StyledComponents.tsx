@@ -1,16 +1,19 @@
 import styled from 'styled-components';
 
+// Constants for easy adjustment
 export const LAYOUT_CONFIG = {
-  headerHeight: '22vh',
-  globeTopMargin: '8vh',
-  statCardWidth: '140px',
+  headerHeight: '20vh',           // Reduced header height
+  globeTopMargin: '15vh',        // Increased margin to move globe down
+  globeVerticalOffset: '5vh',     // Additional offset for globe position
+  statCardWidth: '130px',        // Compact stat cards
+  statCardAspectRatio: 1.2,      // More square-like cards
 };
 
 export const AppContainer = styled.div`
   width: 100vw;
   height: 100vh;
   background: #000011;
-  position: fixed; // Changed to fixed to prevent layout shifts
+  position: fixed;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -28,18 +31,19 @@ export const HeaderWrapper = styled.header`
   z-index: 1;
   height: fit-content;
   max-height: ${LAYOUT_CONFIG.headerHeight};
-  position: fixed; // Changed to fixed
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;
 `;
 
 export const GlobeContainer = styled.div`
-  position: fixed; // Changed to fixed
+  position: fixed;
   top: ${LAYOUT_CONFIG.globeTopMargin};
   left: 0;
   width: 100vw;
   height: calc(100vh - ${LAYOUT_CONFIG.globeTopMargin});
+  transform: translateY(${LAYOUT_CONFIG.globeVerticalOffset}); // Adjust globe position
 `;
 
 export const StatsContainer = styled.div`
@@ -47,8 +51,6 @@ export const StatsContainer = styled.div`
   grid-template-columns: repeat(3, ${LAYOUT_CONFIG.statCardWidth});
   gap: 0.75rem;
   margin-top: 0.75rem;
-  margin-left: auto;
-  margin-right: auto;
   justify-content: center;
 `;
 
@@ -61,7 +63,7 @@ export const StatCard = styled.div`
   overflow: hidden;
   transition: all 0.3s ease;
   width: ${LAYOUT_CONFIG.statCardWidth};
-  aspect-ratio: 1.2;
+  aspect-ratio: ${LAYOUT_CONFIG.statCardAspectRatio};
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -106,7 +108,7 @@ export const StatCard = styled.div`
 `;
 
 export const ChatPosition = styled.div`
-  position: fixed; // Changed to fixed
+  position: fixed;
   left: 1rem;
   bottom: 1rem;
   z-index: 2;
@@ -117,14 +119,14 @@ export const ChatPosition = styled.div`
 `;
 
 export const ControlsPosition = styled.div`
-  position: fixed; // Changed to fixed
+  position: fixed;
   top: calc(${LAYOUT_CONFIG.headerHeight} + 1rem);
   right: 1rem;
   z-index: 2;
 `;
 
 export const Legend = styled.div`
-  position: fixed; // Changed to fixed
+  position: fixed;
   bottom: 1rem;
   right: 1rem;
   background: rgba(0, 0, 0, 0.8);
@@ -165,7 +167,7 @@ export const StatLabel = styled.div`
   }
 `;
 
-// Rest of the styled components...
+// Common text styles
 export const Title = styled.h1`
   font-size: min(4vw, 2rem);
   margin: 0;
@@ -185,6 +187,7 @@ export const SmallText = styled.div`
   color: rgba(255, 255, 255, 0.6);
 `;
 
+// Legend styles
 export const LegendTitle = styled.h2`
   font-size: 0.85rem;
   font-weight: 600;

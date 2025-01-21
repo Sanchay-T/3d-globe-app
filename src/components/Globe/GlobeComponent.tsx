@@ -16,6 +16,39 @@ export interface CountryFeature {
   };
 }
 
+interface PointData {
+  lat: number;
+  lng: number;
+  size: number;
+  color: string;
+  label: string;
+  details: string;
+  type: 'complete' | 'partial';
+}
+
+interface ArcData {
+  startLat: number;
+  startLng: number;
+  endLat: number;
+  endLng: number;
+  color: string;
+  label: string;
+  type: 'complete' | 'partial';
+}
+
+interface RingData {
+  lat: number;
+  lng: number;
+  maxR: number;
+  propagationSpeed: number;
+  repeatPeriod: number;
+  color: string;
+  altitude: number;
+  label: string;
+  details: string;
+  type: 'complete' | 'partial';
+}
+
 interface GlobeComponentProps {
   config: GlobeConfig;
   countries: { features: CountryFeature[] };
@@ -43,7 +76,6 @@ export const GlobeComponent: React.FC<GlobeComponentProps> = ({
       controls.autoRotate = isAutoRotating;
       controls.autoRotateSpeed = isAutoRotating ? -0.5 : 0;
       
-      // Adjust control settings for better interaction
       controls.enableDamping = true;
       controls.dampingFactor = 0.2;
       controls.rotateSpeed = 0.7;
@@ -76,19 +108,25 @@ export const GlobeComponent: React.FC<GlobeComponentProps> = ({
     `;
   };
 
-  // Generate layer data
+  // Generate and filter layer data
   const pointsData = useMemo(() => 
-    activeLayers.includes('points') ? generatePointsData(banData, config) : [], 
+    activeLayers.includes('points') 
+      ? (generatePointsData(banData, config) as PointData[]).filter(Boolean)
+      : [], 
     [activeLayers, banData, config]
   );
 
   const arcsData = useMemo(() => 
-    activeLayers.includes('arcs') ? generateArcsData(banData, config) : [],
+    activeLayers.includes('arcs') 
+      ? (generateArcsData(banData, config) as ArcData[]).filter(Boolean)
+      : [],
     [activeLayers, banData, config]
   );
 
   const ringsData = useMemo(() => 
-    activeLayers.includes('rings') ? generateRingsData(banData, config) : [],
+    activeLayers.includes('rings') 
+      ? (generateRingsData(banData, config) as RingData[]).filter(Boolean)
+      : [],
     [activeLayers, banData, config]
   );
 
@@ -127,7 +165,7 @@ export const GlobeComponent: React.FC<GlobeComponentProps> = ({
     arcLabel: (d: any) => d.label,
     arcDashLength: 0.5,
     arcDashGap: 0.2,
-    arcDashAnimateTime: 2000,
+    arcDashAnimateTime: config.arcs.dashAnimateTime,
     
     // Rings layer
     ringsData: ringsData,
@@ -135,7 +173,7 @@ export const GlobeComponent: React.FC<GlobeComponentProps> = ({
     ringMaxRadius: 'maxR',
     ringPropagationSpeed: 'propagationSpeed',
     ringRepeatPeriod: 'repeatPeriod',
-    ringLabel: (d: any) => d.label,
+    ringAltitude: 'altitude',
     
     // Globe settings
     atmosphereColor: config.atmosphere.color,

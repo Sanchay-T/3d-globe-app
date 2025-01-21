@@ -1,7 +1,12 @@
 import { TiktokBanData } from '../data/tiktokBanData';
 
-// Capital cities coordinates (sample - add more as needed)
-const capitalCoordinates: Record<string, { lat: number; lng: number }> = {
+interface Coordinates {
+  lat: number;
+  lng: number;
+}
+
+// Capital cities coordinates (using more precise coordinates)
+export const capitalCoordinates: Record<string, Coordinates> = {
   "India": { lat: 28.6139, lng: 77.2090 },
   "United States": { lat: 38.8977, lng: -77.0365 },
   "China": { lat: 39.9042, lng: 116.4074 },
@@ -13,7 +18,6 @@ const capitalCoordinates: Record<string, { lat: number; lng: number }> = {
   "Japan": { lat: 35.6762, lng: 139.6503 },
   "Russia": { lat: 55.7558, lng: 37.6173 },
   "Brazil": { lat: -15.7975, lng: -47.8919 },
-  "South Africa": { lat: -25.7479, lng: 28.2293 },
   "Iran": { lat: 35.6892, lng: 51.3890 },
   "Afghanistan": { lat: 34.5553, lng: 69.2075 },
   "Nepal": { lat: 27.7172, lng: 85.3240 },
@@ -21,101 +25,159 @@ const capitalCoordinates: Record<string, { lat: number; lng: number }> = {
   "Belgium": { lat: 50.8503, lng: 4.3517 },
   "Denmark": { lat: 55.6761, lng: 12.5683 },
   "Netherlands": { lat: 52.3676, lng: 4.9041 },
-  "New Zealand": { lat: -41.2866, lng: 174.7756 },
   "Taiwan": { lat: 25.0330, lng: 121.5654 },
   "Norway": { lat: 59.9139, lng: 10.7522 },
   "Latvia": { lat: 56.9496, lng: 24.1052 },
   "Estonia": { lat: 59.4370, lng: 24.7536 },
-  "Kyrgyzstan": { lat: 42.8746, lng: 74.5698 },
-  "Senegal": { lat: 14.7167, lng: -17.4677 },
-  "Somalia": { lat: 2.0469, lng: 45.3182 },
   "Indonesia": { lat: -6.2088, lng: 106.8456 },
   "Pakistan": { lat: 33.6844, lng: 73.0479 }
 };
 
-// Get coordinates for a country, fallback to random if not found
-const getCountryCoordinates = (country: string): { lat: number; lng: number } => {
-  if (capitalCoordinates[country]) {
-    return capitalCoordinates[country];
-  }
-  return {
-    lat: (Math.random() * 140 - 70), // Avoid poles
-    lng: Math.random() * 360 - 180
-  };
+// Get coordinates for a country
+const getCountryCoordinates = (country: string): Coordinates | null => {
+  return capitalCoordinates[country] || null;
 };
 
-// Helper to get colored coordinates based on ban type
-const getBanTypeColor = (type: 'complete' | 'partial', config: any) => {
-  return type === 'complete' ? config.colors.completeBan : config.colors.partialBan;
+// Group countries by region for meaningful connections
+const getRegionGroups = (banData: TiktokBanData[]): Record<string, TiktokBanData[]> => {
+  const regions: Record<string, TiktokBanData[]> = {
+    'Asia': [],
+    'Europe': [],
+    'Americas': [],
+    'Oceania': []
+  };
+
+  const regionMapping: Record<string, string> = {
+    'India': 'Asia',
+    'China': 'Asia',
+    'Japan': 'Asia',
+    'United Kingdom': 'Europe',
+    'France': 'Europe',
+    'Germany': 'Europe',
+    'United States': 'Americas',
+    'Canada': 'Americas',
+    'Australia': 'Oceania',
+    'Iran': 'Asia',
+    'Afghanistan': 'Asia',
+    'Nepal': 'Asia',
+    'Jordan': 'Asia',
+    'Belgium': 'Europe',
+    'Denmark': 'Europe',
+    'Netherlands': 'Europe',
+    'Taiwan': 'Asia',
+    'Norway': 'Europe',
+    'Latvia': 'Europe',
+    'Estonia': 'Europe',
+    'Indonesia': 'Asia',
+    'Pakistan': 'Asia'
+  };
+
+  banData.forEach(country => {
+    const region = regionMapping[country.country] || 'Other';
+    if (regions[region]) {
+      regions[region].push(country);
+    }
+  });
+
+  return regions;
 };
 
 export const generatePointsData = (banData: TiktokBanData[], config: any) => {
-  return banData.map(d => {
-    const coords = getCountryCoordinates(d.country);
-    return {
-      ...coords,
-      size: config.points.radius,
-      color: getBanTypeColor(d.type, config),
-      label: d.country,
-      details: d.details,
-      type: d.type
-    };
-  });
+  return banData
+    .map(d => {
+      const coords = getCountryCoordinates(d.country);
+      if (!coords) return null;
+
+      return {
+        ...coords,
+        size: config.points.radius,
+        color: d.type === 'complete' ? config.colors.completeBan : config.colors.partialBan,
+        label: d.country,
+        details: d.details,
+        type: d.type
+      };
+    })
+    .filter(Boolean);
 };
 
 export const generateArcsData = (banData: TiktokBanData[], config: any) => {
-  return banData.reduce((acc: any[], curr, idx, arr) => {
-    if (idx < arr.length - 1) {
-      const startCoords = getCountryCoordinates(curr.country);
-      const endCoords = getCountryCoordinates(arr[idx + 1].country);
-      acc.push({
-        startLat: startCoords.lat,
-        startLng: startCoords.lng,
-        endLat: endCoords.lat,
-        endLng: endCoords.lng,
-        color: getBanTypeColor(curr.type, config),
-        label: `${curr.country} → ${arr[idx + 1].country}`,
-        type: curr.type
+  const regions = getRegionGroups(banData);
+  const arcs: any[] = [];
+
+  // Connect countries within same region and with same restriction type
+  Object.values(regions).forEach(regionCountries => {
+    const completeBans = regionCountries.filter(c => c.type === 'complete');
+    const partialBans = regionCountries.filter(c => c.type === 'partial');
+
+    [completeBans, partialBans].forEach(group => {
+      group.forEach((start, i) => {
+        if (i < group.length - 1) {
+          const startCoords = getCountryCoordinates(start.country);
+          const endCoords = getCountryCoordinates(group[i + 1].country);
+
+          if (startCoords && endCoords) {
+            arcs.push({
+              startLat: startCoords.lat,
+              startLng: startCoords.lng,
+              endLat: endCoords.lat,
+              endLng: endCoords.lng,
+              color: start.type === 'complete' 
+                ? config.colors.completeBan 
+                : config.colors.partialBan,
+              label: `${start.country} → ${group[i + 1].country}`,
+              type: start.type
+            });
+          }
+        }
       });
-    }
-    return acc;
-  }, []);
+    });
+  });
+
+  return arcs;
 };
 
-export const generateRingsData = (
-  banData: TiktokBanData[],
-  config: any
-) => {
-  return banData.map(d => {
-    const coords = getCountryCoordinates(d.country);
-    return {
-      ...coords,
-      maxR: config.rings.maxRadius,
-      propagationSpeed: config.rings.propagationSpeed,
-      repeatPeriod: config.rings.repeatPeriod,
-      color: getBanTypeColor(d.type, config),
-      label: d.country,
-      details: d.details,
-      type: d.type
-    };
-  });
+export const generateRingsData = (banData: TiktokBanData[], config: any) => {
+  return banData
+    .map(d => {
+      const coords = getCountryCoordinates(d.country);
+      if (!coords) return null;
+
+      return {
+        ...coords,
+        maxR: d.type === 'complete' ? config.rings.maxRadius : config.rings.maxRadius * 0.7,
+        propagationSpeed: d.type === 'complete' ? 
+          config.rings.propagationSpeed : 
+          config.rings.propagationSpeed * 0.8,
+        repeatPeriod: d.type === 'complete' ? 
+          config.rings.repeatPeriod : 
+          config.rings.repeatPeriod * 1.5,
+        color: d.type === 'complete' 
+          ? config.colors.completeBan 
+          : config.colors.partialBan,
+        altitude: config.rings.maxAltitude,
+        label: d.country,
+        details: d.details,
+        type: d.type
+      };
+    })
+    .filter(Boolean);
 };
 
 export const layerInfo = {
   points: {
     label: 'Capital Points',
-    description: 'Displays restriction status at country capitals'
+    description: 'Shows restriction status at capital cities with color-coded markers'
   },
   arcs: {
-    label: 'Connection Arcs',
-    description: 'Shows relationships between restricted regions'
+    label: 'Regional Networks',
+    description: 'Visualizes connections between countries with similar restrictions within regions'
   },
   rings: {
-    label: 'Pulse Rings',
-    description: 'Animated rings emanating from restricted capitals'
+    label: 'Impact Waves',
+    description: 'Pulsing rings indicate restriction intensity, with faster pulses for complete bans'
   },
   hexBin: {
-    label: 'Density Hexagons',
-    description: 'Shows concentration of restrictions by region'
+    label: 'Regional Density',
+    description: 'Shows concentration of restrictions by geographical area'
   }
 };

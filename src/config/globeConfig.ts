@@ -17,22 +17,24 @@ export interface GlobeConfig {
     completeBan: string;
     partialBan: string;
     noRestriction: string;
+    capitalPoint: string;
+    connectionArc: string;
+    pulseRing: string;
   };
   points: {
     radius: number;
     altitude: number;
-    color: string;
   };
   arcs: {
-    color: string;
     altitude: number;
     stroke: number;
+    dashAnimateTime: number;
   };
   rings: {
-    color: string;
     maxRadius: number;
     propagationSpeed: number;
     repeatPeriod: number;
+    maxAltitude: number;
   };
   hexBin: {
     resolution: number;
@@ -57,28 +59,30 @@ export const globeConfig: GlobeConfig = {
   colors: {
     completeBan: '#ff4444',
     partialBan: '#ffaa44',
-    noRestriction: 'rgba(100, 100, 100, 0.3)'
+    noRestriction: 'rgba(100, 100, 100, 0.3)',
+    capitalPoint: '#4CAF50', // Green for capital points
+    connectionArc: 'rgba(76, 175, 80, 0.5)', // Semi-transparent green for arcs
+    pulseRing: 'rgba(76, 175, 80, 0.3)' // Very light green for rings
   },
   points: {
     radius: 0.5,
-    altitude: 0.1,
-    color: '#ffff00'
+    altitude: 0.01 // Lower altitude for capital points
   },
   arcs: {
-    color: '#ff0000',
-    altitude: 0.5,
-    stroke: 0.5
+    altitude: 0.2, // Lower arc height
+    stroke: 0.5,
+    dashAnimateTime: 3000 // Slower animation
   },
   rings: {
-    color: '#ff4444',
-    maxRadius: 2,
-    propagationSpeed: 1,
-    repeatPeriod: 1000
+    maxRadius: 1, // Smaller radius for rings
+    propagationSpeed: 2,
+    repeatPeriod: 2000,
+    maxAltitude: 0.01 // Keep rings close to surface
   },
   hexBin: {
     resolution: 4,
-    altitude: 0.1,
-    color: '#ffaa44'
+    altitude: 0.05,
+    color: 'rgba(255, 255, 255, 0.1)' // Very subtle hexbins
   }
 };
 
