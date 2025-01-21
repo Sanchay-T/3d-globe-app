@@ -1,17 +1,29 @@
 import styled from 'styled-components';
 
-// Constants for easy adjustment
+// Constants for viewport-based calculations
 export const LAYOUT_CONFIG = {
-  headerHeight: '20vh',           // Reduced header height
-  globeTopMargin: '15vh',        // Increased margin to move globe down
-  globeVerticalOffset: '5vh',     // Additional offset for globe position
-  statCardWidth: '130px',        // Compact stat cards
-  statCardAspectRatio: 1.2,      // More square-like cards
+  headerHeight: '20vh',
+  globeTopMargin: '8vh',
+  globeVerticalOffset: '5vh',
+  statCardWidth: '130px',
+  statCardAspectRatio: 1.2,
+  // Viewport breakpoints
+  minHeight: '600px',
+  maxChatHeight: '45vh',
+  minChatHeight: '300px',
+  safeBottomMargin: '50px'
 };
+
+// Calculate safe heights
+const getSafeHeight = () => `max(
+  min(${LAYOUT_CONFIG.maxChatHeight}, 100vh - ${LAYOUT_CONFIG.headerHeight} - ${LAYOUT_CONFIG.safeBottomMargin}),
+  ${LAYOUT_CONFIG.minChatHeight}
+)`;
 
 export const AppContainer = styled.div`
   width: 100vw;
   height: 100vh;
+  min-height: ${LAYOUT_CONFIG.minHeight};
   background: #000011;
   position: fixed;
   overflow: hidden;
@@ -43,15 +55,44 @@ export const GlobeContainer = styled.div`
   left: 0;
   width: 100vw;
   height: calc(100vh - ${LAYOUT_CONFIG.globeTopMargin});
-  transform: translateY(${LAYOUT_CONFIG.globeVerticalOffset}); // Adjust globe position
+  transform: translateY(${LAYOUT_CONFIG.globeVerticalOffset});
 `;
 
+export const ChatPosition = styled.div`
+  position: fixed;
+  left: 1rem;
+  bottom: ${LAYOUT_CONFIG.safeBottomMargin};
+  z-index: 2;
+  width: 20vw;
+  min-width: 280px;
+  max-width: 320px;
+  height: ${getSafeHeight()};
+  display: flex;
+  flex-direction: column;
+`;
+
+export const ControlsPosition = styled.div`
+  position: fixed;
+  top: calc(${LAYOUT_CONFIG.headerHeight} + 1rem);
+  right: 1rem;
+  z-index: 2;
+`;
+
+export const LegendPosition = styled.div`
+  position: fixed;
+  bottom: ${LAYOUT_CONFIG.safeBottomMargin};
+  right: 1rem;
+  z-index: 2;
+`;
+
+// Stat cards styling
 export const StatsContainer = styled.div`
   display: grid;
   grid-template-columns: repeat(3, ${LAYOUT_CONFIG.statCardWidth});
   gap: 0.75rem;
   margin-top: 0.75rem;
   justify-content: center;
+  min-height: 0;
 `;
 
 export const StatCard = styled.div`
@@ -105,41 +146,6 @@ export const StatCard = styled.div`
     );
     pointer-events: none;
   }
-`;
-
-export const ChatPosition = styled.div`
-  position: fixed;
-  left: 1rem;
-  bottom: 1rem;
-  z-index: 2;
-  width: 20vw;
-  min-width: 280px;
-  max-width: 320px;
-  height: 45vh;
-`;
-
-export const ControlsPosition = styled.div`
-  position: fixed;
-  top: calc(${LAYOUT_CONFIG.headerHeight} + 1rem);
-  right: 1rem;
-  z-index: 2;
-`;
-
-export const Legend = styled.div`
-  position: fixed;
-  bottom: 1rem;
-  right: 1rem;
-  background: rgba(0, 0, 0, 0.8);
-  padding: 0.75rem;
-  border-radius: 12px;
-  z-index: 2;
-  color: white;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  min-width: 180px;
-  max-width: 220px;
-  font-size: 0.8rem;
 `;
 
 export const StatValue = styled.div`

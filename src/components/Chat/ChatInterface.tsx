@@ -12,13 +12,14 @@ const ChatContainer = styled.div`
   display: flex;
   flex-direction: column;
   font-size: 0.85rem;
-  overflow: hidden; // Ensure content doesn't overflow
+  overflow: hidden;
+  position: relative;
 `;
 
 const ChatHeader = styled.div`
   padding: 0.75rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  flex-shrink: 0; // Prevent header from shrinking
+  flex-shrink: 0;
 `;
 
 const ChatTitle = styled.h3`
@@ -32,10 +33,11 @@ const ChatTitle = styled.h3`
 `;
 
 const ChatMessagesWrapper = styled.div`
-  flex-grow: 1;
-  min-height: 0; // Important for proper flexbox scrolling
+  flex: 1;
+  min-height: 0;
   position: relative;
   overflow: hidden;
+  max-height: calc(100% - 110px); // Account for header and input
 `;
 
 const ChatMessages = styled.div`
@@ -108,7 +110,11 @@ const InputContainer = styled.div`
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   gap: 0.5rem;
-  flex-shrink: 0; // Prevent input from shrinking
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: inherit;
 `;
 
 const Input = styled.input`

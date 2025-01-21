@@ -14,12 +14,11 @@ const ControlsContainer = styled.div`
   max-width: 200px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
   font-size: 0.85rem;
-  transform: scale(0.9);
-  transform-origin: top right;
-  transition: all 0.2s ease;
+  transition: transform 0.2s ease;
 
+  /* Single hover effect for the entire container */
   &:hover {
-    transform: scale(0.95) translateX(-5px);
+    transform: translateX(-5px);
   }
 `;
 
@@ -54,10 +53,11 @@ const CheckboxLabel = styled.label`
   font-size: 0.8rem;
   padding: 0.35rem 0.5rem;
   border-radius: 4px;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease;
   color: rgba(255, 255, 255, 0.8);
   user-select: none;
 
+  /* Simplified hover effect */
   &:hover {
     background: rgba(255, 255, 255, 0.1);
     color: white;
@@ -77,13 +77,13 @@ const Tooltip = styled.div<{ visible: boolean }>`
   top: 50%;
   transform: translateY(-50%);
   background: rgba(0, 0, 0, 0.95);
-  padding: 0.6rem 0.8rem;
+  padding: 0.5rem 0.75rem;
   border-radius: 6px;
   font-size: 0.75rem;
-  width: 180px;
+  width: 160px;
   opacity: ${props => props.visible ? 1 : 0};
   visibility: ${props => props.visible ? 'visible' : 'hidden'};
-  transition: all 0.2s ease;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
   pointer-events: none;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -99,19 +99,6 @@ const Tooltip = styled.div<{ visible: boolean }>`
     border-left: 4px solid rgba(0, 0, 0, 0.95);
     border-top: 4px solid transparent;
     border-bottom: 4px solid transparent;
-  }
-`;
-
-const LayerDescription = styled.div`
-  font-size: 0.7rem;
-  color: rgba(255, 255, 255, 0.6);
-  margin-top: 0.2rem;
-  margin-left: 1.2rem;
-  line-height: 1.4;
-  display: none;
-
-  ${LayerItem}:hover & {
-    display: block;
   }
 `;
 
@@ -177,9 +164,6 @@ export const LayerControls: React.FC<LayerControlsProps> = ({
               <Tooltip visible={hoveredLayer === layerId}>
                 {info.description}
               </Tooltip>
-              <LayerDescription>
-                {info.description}
-              </LayerDescription>
             </LayerItem>
           )
         )}
