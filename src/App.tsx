@@ -20,7 +20,7 @@ import { globeConfig, LayerType } from './config/globeConfig';
 const AppContent: React.FC = () => {
   const [countries, setCountries] = useState<{ features: CountryFeature[] }>({ features: [] });
   const [hoverD, setHoverD] = useState<CountryFeature | null>(null);
-  const [isAutoRotating, setIsAutoRotating] = useState(false);
+  const [isAutoRotating, setIsAutoRotating] = useState(true);
   const [activeLayers, setActiveLayers] = useState<LayerType[]>([]);
   const [showIntro, setShowIntro] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);

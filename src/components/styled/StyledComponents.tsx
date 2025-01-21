@@ -114,7 +114,7 @@ export const HeaderWrapper = styled.header`
 
 export const GlobeContainer = styled.div`
   position: fixed;
-  top: ${LAYOUT_CONFIG.globeTopMargin};
+  top: calc(${LAYOUT_CONFIG.globeTopMargin} + 2px);
   left: 0;
   width: 100vw;
   height: calc(100vh - ${LAYOUT_CONFIG.globeTopMargin});
