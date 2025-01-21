@@ -141,6 +141,7 @@ const LegendCount = styled.span`
 const GlobeContainer = styled.div`
   width: 100%;
   height: 100%;
+  padding-top: 12rem; /* Add space below header */
 `;
 
 interface CountryProperties {
@@ -167,7 +168,7 @@ const App: React.FC = () => {
     const controls = globeRef.current?.controls();
     if (controls) {
       controls.autoRotate = true;
-      controls.autoRotateSpeed = 0.5;
+      controls.autoRotateSpeed = -0.5; // Negative value for left-to-right rotation
     }
   }, []);
 
