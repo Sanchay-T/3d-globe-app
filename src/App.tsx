@@ -159,6 +159,14 @@ interface CountryData {
   features: CountryFeature[];
 }
 
+declare global {
+  interface Window {
+    ENV?: {
+      AUTO_ROTATE?: string;
+    };
+  }
+}
+
 const App: React.FC = () => {
   const [countries, setCountries] = useState<CountryData>({ features: [] });
   const [hoverD, setHoverD] = useState<CountryFeature | null>(null);
@@ -167,8 +175,22 @@ const App: React.FC = () => {
   useEffect(() => {
     const controls = globeRef.current?.controls();
     if (controls) {
-      controls.autoRotate = true;
-      controls.autoRotateSpeed = -0.5; // Negative value for left-to-right rotation
+      const autoRotateValue = process.env.REACT_APP_AUTO_ROTATE?.toLowerCase();
+      console.log('Auto rotate env value:', autoRotateValue); // Debug log
+
+      // Explicitly check for 'true', everything else is false
+      const shouldAutoRotate = autoRotateValue === 'true';
+      console.log('Should auto rotate:', shouldAutoRotate); // Debug log
+
+      // Set auto-rotate
+      controls.autoRotate = shouldAutoRotate;
+      
+      // Only set speed if rotation is enabled
+      if (shouldAutoRotate) {
+        controls.autoRotateSpeed = -0.5;
+      } else {
+        controls.autoRotateSpeed = 0;
+      }
     }
   }, []);
 
