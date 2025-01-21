@@ -1,5 +1,12 @@
 import styled from 'styled-components';
 
+// Constants for easy adjustment
+export const LAYOUT_CONFIG = {
+  headerHeight: '22vh',
+  globeTopMargin: '11vh', // Adjust this value to move the globe up/down
+  statCardWidth: '180px', // Control stat card width
+};
+
 export const AppContainer = styled.div`
   width: 100vw;
   height: 100vh;
@@ -21,60 +28,25 @@ export const HeaderWrapper = styled.header`
   backdrop-filter: blur(10px);
   z-index: 1;
   height: fit-content;
-  max-height: 22vh;
+  max-height: ${LAYOUT_CONFIG.headerHeight};
 `;
 
 export const GlobeContainer = styled.div`
   position: absolute;
-  top: 0;
+  top: ${LAYOUT_CONFIG.globeTopMargin}; // Adjustable globe position
   left: 0;
   width: 100vw;
-  height: 100vh;
-`;
-
-export const ChatPosition = styled.div`
-  position: absolute;
-  left: 1rem;
-  bottom: 1rem;
-  z-index: 2;
-  width: 20vw;
-  min-width: 280px;
-  max-width: 320px;
-  height: 45vh;
-`;
-
-export const ControlsPosition = styled.div`
-  position: absolute;
-  top: 23vh;
-  right: 1rem;
-  z-index: 2;
-`;
-
-export const Legend = styled.div`
-  position: absolute;
-  bottom: 1rem;
-  right: 1rem;
-  background: rgba(0, 0, 0, 0.8);
-  padding: 0.75rem;
-  border-radius: 8px;
-  z-index: 2;
-  color: white;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  min-width: 180px;
-  max-width: 220px;
-  font-size: 0.8rem;
+  height: calc(100vh - ${LAYOUT_CONFIG.globeTopMargin});
 `;
 
 export const StatsContainer = styled.div`
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, ${LAYOUT_CONFIG.statCardWidth});
   gap: 0.5rem;
   margin-top: 0.5rem;
-  max-width: 90vw;
   margin-left: auto;
   margin-right: auto;
+  justify-content: center;
 `;
 
 export const StatCard = styled.div`
@@ -85,7 +57,8 @@ export const StatCard = styled.div`
   position: relative;
   overflow: hidden;
   transition: all 0.3s ease;
-  min-width: 120px;
+  width: ${LAYOUT_CONFIG.statCardWidth};
+  aspect-ratio: 1.4; // More square-ish ratio
 
   &:hover {
     transform: translateY(-2px);
@@ -105,6 +78,42 @@ export const StatCard = styled.div`
       rgba(255, 155, 75, 0.5)
     );
   }
+`;
+
+// Rest of the styled components remain the same
+export const ChatPosition = styled.div`
+  position: absolute;
+  left: 1rem;
+  bottom: 1rem;
+  z-index: 2;
+  width: 20vw;
+  min-width: 280px;
+  max-width: 320px;
+  height: 45vh;
+`;
+
+export const ControlsPosition = styled.div`
+  position: absolute;
+  top: calc(${LAYOUT_CONFIG.headerHeight} + 1rem);
+  right: 1rem;
+  z-index: 2;
+`;
+
+export const Legend = styled.div`
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 0.75rem;
+  border-radius: 8px;
+  z-index: 2;
+  color: white;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  min-width: 180px;
+  max-width: 220px;
+  font-size: 0.8rem;
 `;
 
 export const StatValue = styled.div`
@@ -146,13 +155,16 @@ export const SmallText = styled.div`
   color: rgba(255, 255, 255, 0.6);
 `;
 
-// Legend specific styles
+// Legend styles
 export const LegendTitle = styled.h2`
   font-size: 0.85rem;
   font-weight: 600;
   margin: 0 0 0.6rem;
   padding-bottom: 0.4rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(135deg, #fff 0%, #ddd 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 `;
 
 export const LegendItem = styled.div`
