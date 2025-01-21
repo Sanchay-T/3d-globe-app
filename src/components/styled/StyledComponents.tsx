@@ -1,17 +1,16 @@
 import styled from 'styled-components';
 
-// Constants for easy adjustment
 export const LAYOUT_CONFIG = {
   headerHeight: '22vh',
-  globeTopMargin: '11vh', // Adjust this value to move the globe up/down
-  statCardWidth: '180px', // Control stat card width
+  globeTopMargin: '8vh',
+  statCardWidth: '140px',
 };
 
 export const AppContainer = styled.div`
   width: 100vw;
   height: 100vh;
   background: #000011;
-  position: relative;
+  position: fixed; // Changed to fixed to prevent layout shifts
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -29,11 +28,15 @@ export const HeaderWrapper = styled.header`
   z-index: 1;
   height: fit-content;
   max-height: ${LAYOUT_CONFIG.headerHeight};
+  position: fixed; // Changed to fixed
+  top: 0;
+  left: 0;
+  right: 0;
 `;
 
 export const GlobeContainer = styled.div`
-  position: absolute;
-  top: ${LAYOUT_CONFIG.globeTopMargin}; // Adjustable globe position
+  position: fixed; // Changed to fixed
+  top: ${LAYOUT_CONFIG.globeTopMargin};
   left: 0;
   width: 100vw;
   height: calc(100vh - ${LAYOUT_CONFIG.globeTopMargin});
@@ -42,8 +45,8 @@ export const GlobeContainer = styled.div`
 export const StatsContainer = styled.div`
   display: grid;
   grid-template-columns: repeat(3, ${LAYOUT_CONFIG.statCardWidth});
-  gap: 0.5rem;
-  margin-top: 0.5rem;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
   margin-left: auto;
   margin-right: auto;
   justify-content: center;
@@ -52,37 +55,58 @@ export const StatsContainer = styled.div`
 export const StatCard = styled.div`
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
-  padding: 0.6rem;
+  border-radius: 12px;
+  padding: 0.8rem;
   position: relative;
   overflow: hidden;
   transition: all 0.3s ease;
   width: ${LAYOUT_CONFIG.statCardWidth};
-  aspect-ratio: 1.4; // More square-ish ratio
+  aspect-ratio: 1.2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
 
   &:hover {
     transform: translateY(-2px);
     background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   }
 
   &::before {
     content: '';
     position: absolute;
     top: 0;
-    left: 0;
-    right: 0;
+    left: 10%;
+    right: 10%;
     height: 2px;
     background: linear-gradient(
       90deg,
-      rgba(255, 75, 75, 0.5),
-      rgba(255, 155, 75, 0.5)
+      transparent,
+      rgba(255, 75, 75, 0.5) 20%,
+      rgba(255, 155, 75, 0.5) 80%,
+      transparent
     );
+    border-radius: 2px;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+      circle at 50% 0%,
+      rgba(255, 255, 255, 0.05) 0%,
+      transparent 70%
+    );
+    pointer-events: none;
   }
 `;
 
-// Rest of the styled components remain the same
 export const ChatPosition = styled.div`
-  position: absolute;
+  position: fixed; // Changed to fixed
   left: 1rem;
   bottom: 1rem;
   z-index: 2;
@@ -93,19 +117,19 @@ export const ChatPosition = styled.div`
 `;
 
 export const ControlsPosition = styled.div`
-  position: absolute;
+  position: fixed; // Changed to fixed
   top: calc(${LAYOUT_CONFIG.headerHeight} + 1rem);
   right: 1rem;
   z-index: 2;
 `;
 
 export const Legend = styled.div`
-  position: absolute;
+  position: fixed; // Changed to fixed
   bottom: 1rem;
   right: 1rem;
   background: rgba(0, 0, 0, 0.8);
   padding: 0.75rem;
-  border-radius: 8px;
+  border-radius: 12px;
   z-index: 2;
   color: white;
   backdrop-filter: blur(10px);
@@ -117,25 +141,31 @@ export const Legend = styled.div`
 `;
 
 export const StatValue = styled.div`
-  font-size: min(4vw, 1.8rem);
+  font-size: 2rem;
   font-weight: 700;
   background: linear-gradient(135deg, #fff 0%, #ddd 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   line-height: 1;
-  margin-bottom: 0.2rem;
+  margin-bottom: 0.4rem;
+  letter-spacing: -0.02em;
 `;
 
 export const StatLabel = styled.div`
-  font-size: min(2vw, 0.7rem);
+  font-size: 0.75rem;
   color: rgba(255, 255, 255, 0.7);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   font-weight: 500;
   white-space: nowrap;
+  transition: color 0.3s ease;
+
+  ${StatCard}:hover & {
+    color: rgba(255, 255, 255, 0.9);
+  }
 `;
 
-// Common text styles
+// Rest of the styled components...
 export const Title = styled.h1`
   font-size: min(4vw, 2rem);
   margin: 0;
@@ -155,7 +185,6 @@ export const SmallText = styled.div`
   color: rgba(255, 255, 255, 0.6);
 `;
 
-// Legend styles
 export const LegendTitle = styled.h2`
   font-size: 0.85rem;
   font-weight: 600;

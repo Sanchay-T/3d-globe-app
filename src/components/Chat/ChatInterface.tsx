@@ -5,18 +5,20 @@ const ChatContainer = styled.div`
   width: 100%;
   height: 100%;
   background: rgba(0, 0, 0, 0.8);
-  border-radius: 8px;
+  border-radius: 12px;
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
   display: flex;
   flex-direction: column;
   font-size: 0.85rem;
+  overflow: hidden; // Ensure content doesn't overflow
 `;
 
 const ChatHeader = styled.div`
   padding: 0.75rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0; // Prevent header from shrinking
 `;
 
 const ChatTitle = styled.h3`
@@ -29,9 +31,20 @@ const ChatTitle = styled.h3`
   -webkit-text-fill-color: transparent;
 `;
 
-const ChatMessages = styled.div`
-  padding: 0.75rem;
+const ChatMessagesWrapper = styled.div`
   flex-grow: 1;
+  min-height: 0; // Important for proper flexbox scrolling
+  position: relative;
+  overflow: hidden;
+`;
+
+const ChatMessages = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 0.75rem;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -64,6 +77,18 @@ const Message = styled.div<{ isUser: boolean }>`
   font-size: 0.8rem;
   line-height: 1.4;
   position: relative;
+  animation: fadeIn 0.2s ease-out;
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 
   &::before {
     content: '';
@@ -83,6 +108,7 @@ const InputContainer = styled.div`
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   gap: 0.5rem;
+  flex-shrink: 0; // Prevent input from shrinking
 `;
 
 const Input = styled.input`
@@ -187,14 +213,16 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ onAppSearch }) => 
       <ChatHeader>
         <ChatTitle>Global App Restrictions Assistant</ChatTitle>
       </ChatHeader>
-      <ChatMessages>
-        {messages.map((message, index) => (
-          <Message key={message.timestamp} isUser={message.isUser}>
-            {message.text}
-          </Message>
-        ))}
-        <div ref={messagesEndRef} />
-      </ChatMessages>
+      <ChatMessagesWrapper>
+        <ChatMessages>
+          {messages.map((message, index) => (
+            <Message key={message.timestamp} isUser={message.isUser}>
+              {message.text}
+            </Message>
+          ))}
+          <div ref={messagesEndRef} />
+        </ChatMessages>
+      </ChatMessagesWrapper>
       <InputContainer>
         <Input
           value={input}

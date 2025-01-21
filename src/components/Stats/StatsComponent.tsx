@@ -37,7 +37,7 @@ export const StatsComponent: React.FC<StatsComponentProps> = ({
     },
     {
       value: `${affectedPercentage}%`,
-      label: 'Countries Affected',
+      label: 'Affected',
       loading: isLoading ? '...' : undefined
     }
   ];
