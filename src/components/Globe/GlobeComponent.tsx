@@ -1,7 +1,8 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useMemo } from 'react';
 import Globe from 'react-globe.gl';
-import { GlobeConfig, getCountryColor } from '../../config/globeConfig';
+import { GlobeConfig, getCountryColor, LayerType } from '../../config/globeConfig';
 import { TiktokBanData } from '../../data/tiktokBanData';
+import { generatePointsData, generateArcsData, generateRingsData } from '../../utils/layerDataHelpers';
 
 export interface CountryFeature {
   type: string;
@@ -9,7 +10,10 @@ export interface CountryFeature {
     NAME: string;
     [key: string]: any;
   };
-  geometry: any;
+  geometry: {
+    type: string;
+    coordinates: any[];
+  };
 }
 
 interface GlobeComponentProps {
@@ -17,7 +21,9 @@ interface GlobeComponentProps {
   countries: { features: CountryFeature[] };
   banData: TiktokBanData[];
   hoverD: CountryFeature | null;
-  onHexPolygonClick: (d: CountryFeature) => void;
+  onPolygonClick: (d: CountryFeature) => void;
+  activeLayers: LayerType[];
+  isAutoRotating: boolean;
 }
 
 export const GlobeComponent: React.FC<GlobeComponentProps> = ({
@@ -25,28 +31,32 @@ export const GlobeComponent: React.FC<GlobeComponentProps> = ({
   countries,
   banData,
   hoverD,
-  onHexPolygonClick
+  onPolygonClick,
+  activeLayers,
+  isAutoRotating
 }) => {
   const globeRef = useRef<any>();
 
   useEffect(() => {
     const controls = globeRef.current?.controls();
     if (controls) {
-      const autoRotateValue = process.env.REACT_APP_AUTO_ROTATE?.toLowerCase();
+      controls.autoRotate = isAutoRotating;
+      controls.autoRotateSpeed = isAutoRotating ? -0.5 : 0;
       
-      // Explicitly check for 'true', everything else is false
-      const shouldAutoRotate = autoRotateValue === 'true';
-      
-      // Set auto-rotate and speed
-      controls.autoRotate = shouldAutoRotate;
-      controls.autoRotateSpeed = shouldAutoRotate ? -0.5 : 0;
+      // Adjust control settings for better interaction
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.2;
+      controls.rotateSpeed = 0.7;
+      controls.minDistance = 200;
+      controls.maxDistance = 800;
     }
-  }, []);
+  }, [isAutoRotating]);
 
-  const getHexLabel = (d: any) => {
-    if (!d?.properties?.NAME) return '';
-    
+  const getLabel = (obj: any) => {
+    if (!obj?.properties?.NAME) return '';
+    const d = obj as CountryFeature;
     const banInfo = banData.find(t => t.country === d.properties.NAME);
+    
     return `
       <div style="color: white; background: rgba(0, 0, 0, 0.9); padding: 1.5rem; border-radius: 12px; font-family: Inter, system-ui, sans-serif; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); min-width: 300px;">
         <div style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 8px;">
@@ -66,22 +76,84 @@ export const GlobeComponent: React.FC<GlobeComponentProps> = ({
     `;
   };
 
-  return (
-    <Globe
-      ref={globeRef}
-      globeImageUrl={config.images.globe}
-      backgroundImageUrl={config.images.background}
-      hexPolygonsData={countries.features}
-      hexPolygonResolution={config.polygon.resolution}
-      hexPolygonMargin={config.polygon.margin}
-      hexPolygonColor={(d: any) => getCountryColor(d.properties?.NAME || '', banData)}
-      hexPolygonLabel={getHexLabel}
-      hexPolygonAltitude={(d: any) => d === hoverD ? config.polygon.hoverAltitude : config.polygon.baseAltitude}
-      onHexPolygonClick={(d: any) => onHexPolygonClick(d)}
-      atmosphereColor={config.atmosphere.color}
-      atmosphereAltitude={config.atmosphere.altitude}
-      showGraticules={true}
-      animateIn={true}
-    />
+  // Generate layer data using helpers
+  const pointsData = useMemo(() => 
+    activeLayers.includes('points') 
+      ? generatePointsData(banData, config.points.color, config.points.radius)
+      : [], 
+    [activeLayers, banData, config.points]
   );
+
+  const arcsData = useMemo(() => 
+    activeLayers.includes('arcs')
+      ? generateArcsData(banData, config.arcs.color)
+      : [],
+    [activeLayers, banData, config.arcs.color]
+  );
+
+  const ringsData = useMemo(() => 
+    activeLayers.includes('rings')
+      ? generateRingsData(
+          banData,
+          config.rings.maxRadius,
+          config.rings.propagationSpeed,
+          config.rings.repeatPeriod
+        )
+      : [],
+    [activeLayers, banData, config.rings]
+  );
+
+  const handlePolygonClick = (polygon: any, event: MouseEvent) => {
+    if (polygon?.properties) {
+      onPolygonClick(polygon as CountryFeature);
+    }
+  };
+
+  const globeProps = {
+    ref: globeRef,
+    globeImageUrl: config.images.globe,
+    backgroundImageUrl: config.images.background,
+    
+    // Regular polygons for countries
+    polygonsData: countries.features,
+    polygonCapColor: (obj: any) => getCountryColor(obj?.properties?.NAME || '', banData),
+    polygonSideColor: () => 'rgba(0, 0, 0, 0.15)',
+    polygonStrokeColor: () => '#111',
+    polygonLabel: getLabel,
+    polygonAltitude: (obj: any) => obj === hoverD ? config.polygon.hoverAltitude : config.polygon.baseAltitude,
+    onPolygonClick: handlePolygonClick,
+    
+    // Points layer
+    pointsData: pointsData,
+    pointAltitude: config.points.altitude,
+    pointColor: 'color',
+    pointRadius: 'size',
+    pointLabel: (d: any) => d.label,
+    
+    // Arcs layer
+    arcsData: arcsData,
+    arcColor: 'color',
+    arcAltitude: config.arcs.altitude,
+    arcStroke: config.arcs.stroke,
+    arcLabel: (d: any) => d.label,
+    arcDashLength: 0.5,
+    arcDashGap: 0.2,
+    arcDashAnimateTime: 2000,
+    
+    // Rings layer
+    ringsData: ringsData,
+    ringColor: () => config.rings.color,
+    ringMaxRadius: 'maxR',
+    ringPropagationSpeed: 'propagationSpeed',
+    ringRepeatPeriod: 'repeatPeriod',
+    ringLabel: (d: any) => d.label,
+    
+    // Globe settings
+    atmosphereColor: config.atmosphere.color,
+    atmosphereAltitude: config.atmosphere.altitude,
+    showGraticules: true,
+    animateIn: true
+  };
+
+  return <Globe {...globeProps} />;
 };
