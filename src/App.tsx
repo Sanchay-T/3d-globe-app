@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  AppContainer, 
-  GlobeContainer, 
+import {
+  AppContainer,
+  GlobeContainer,
   ControlsPosition,
-  ChatPosition 
+  ChatPosition,
+  IntroOverlay,
+  IntroText,
+  IntroSubText,
+  FullscreenRecommendation
 } from './components/styled/StyledComponents';
 import { GlobeComponent, CountryFeature } from './components/Globe/GlobeComponent';
 import { HeaderComponent } from './components/Header/HeaderComponent';
@@ -18,7 +22,36 @@ const AppContent: React.FC = () => {
   const [hoverD, setHoverD] = useState<CountryFeature | null>(null);
   const [isAutoRotating, setIsAutoRotating] = useState(false);
   const [activeLayers, setActiveLayers] = useState<LayerType[]>([]);
+  const [showIntro, setShowIntro] = useState(true);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showFullscreenMessage, setShowFullscreenMessage] = useState(true);
   const { currentApp, setAppData } = useApp();
+
+  useEffect(() => {
+    // Handle intro animation
+    const timer = setTimeout(() => {
+      setShowIntro(false);
+    }, 4000); // 4 seconds total for intro
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Handle fullscreen state
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(Boolean(document.fullscreenElement));
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
+  // Auto-dismiss fullscreen message after 2 seconds
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowFullscreenMessage(false);
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     // Fetch countries data
@@ -62,7 +95,14 @@ const AppContent: React.FC = () => {
 
   return (
     <AppContainer>
-      <HeaderComponent 
+      <IntroOverlay isVisible={showIntro}>
+        <IntroText>Welcome to TikTok Ban Globe</IntroText>
+        <IntroSubText>Discover the global landscape of TikTok regulations and restrictions across different countries</IntroSubText>
+      </IntroOverlay>
+      <FullscreenRecommendation isVisible={showFullscreenMessage}>
+        For optimal viewing, click to enter fullscreen
+      </FullscreenRecommendation>
+      <HeaderComponent
         countries={countries}
       />
       <GlobeContainer>

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useMemo } from 'react';
+import React, { useEffect, useRef, useMemo, useState } from 'react';
 import Globe from 'react-globe.gl';
 import { GlobeConfig, getCountryColor, LayerType } from '../../config/globeConfig';
 import { TiktokBanData } from '../../data/tiktokBanData';
@@ -69,6 +69,21 @@ export const GlobeComponent: React.FC<GlobeComponentProps> = ({
   isAutoRotating
 }) => {
   const globeRef = useRef<any>();
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (globeRef.current) {
+        globeRef.current.camera().aspect = window.innerWidth / window.innerHeight;
+        globeRef.current.camera().updateProjectionMatrix();
+        globeRef.current.renderer().setSize(window.innerWidth, window.innerHeight);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    handleResize();
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     const controls = globeRef.current?.controls();

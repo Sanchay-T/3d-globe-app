@@ -1,4 +1,4 @@
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 
 // Constants for viewport-based calculations
 export const LAYOUT_CONFIG = {
@@ -19,6 +19,69 @@ const getSafeHeight = () => `max(
   min(${LAYOUT_CONFIG.maxChatHeight}, 100vh - ${LAYOUT_CONFIG.headerHeight} - ${LAYOUT_CONFIG.safeBottomMargin}),
   ${LAYOUT_CONFIG.minChatHeight}
 )`;
+
+const fadeIn = keyframes`
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+`;
+
+const fadeOut = keyframes`
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+`;
+
+export const IntroOverlay = styled.div<{ isVisible: boolean }>`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #000011;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: ${props => props.isVisible ? fadeIn : fadeOut} 1s forwards;
+  pointer-events: ${props => props.isVisible ? 'auto' : 'none'};
+  color: white;
+`;
+
+export const IntroText = styled.div`
+  font-size: 2.5rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 2rem;
+  opacity: 0;
+  animation: ${fadeIn} 2s forwards;
+  animation-delay: 0.5s;
+`;
+
+export const IntroSubText = styled.div`
+  font-size: 1.2rem;
+  text-align: center;
+  opacity: 0;
+  animation: ${fadeIn} 2s forwards;
+  animation-delay: 1.5s;
+  max-width: 600px;
+  margin: 0 2rem;
+`;
+
+export const FullscreenRecommendation = styled.div<{ isVisible: boolean }>`
+  position: fixed;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  z-index: 10;
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: ${props => props.isVisible ? 'block' : 'none'};
+`;
 
 export const AppContainer = styled.div`
   width: 100vw;
