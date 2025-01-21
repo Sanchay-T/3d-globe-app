@@ -1,3 +1,4 @@
+import React from 'react';
 import styled, { keyframes } from 'styled-components';
 
 // Constants for viewport-based calculations
@@ -21,13 +22,36 @@ const getSafeHeight = () => `max(
 )`;
 
 const fadeIn = keyframes`
-  0% { opacity: 0; }
-  100% { opacity: 1; }
+  0% {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 `;
 
 const fadeOut = keyframes`
-  0% { opacity: 1; }
-  100% { opacity: 0; }
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.1);
+  }
+`;
+
+const contentFadeIn = keyframes`
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 `;
 
 export const IntroOverlay = styled.div<{ isVisible: boolean }>`
@@ -53,18 +77,20 @@ export const IntroText = styled.div`
   text-align: center;
   margin-bottom: 2rem;
   opacity: 0;
-  animation: ${fadeIn} 2s forwards;
+  animation: ${fadeIn} 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
   animation-delay: 0.5s;
+  text-shadow: 0 2px 10px rgba(255, 255, 255, 0.2);
 `;
 
 export const IntroSubText = styled.div`
   font-size: 1.2rem;
   text-align: center;
   opacity: 0;
-  animation: ${fadeIn} 2s forwards;
-  animation-delay: 1.5s;
+  animation: ${fadeIn} 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation-delay: 1s;
   max-width: 600px;
   margin: 0 2rem;
+  line-height: 1.6;
 `;
 
 export const FullscreenRecommendation = styled.div<{ isVisible: boolean }>`
@@ -83,6 +109,17 @@ export const FullscreenRecommendation = styled.div<{ isVisible: boolean }>`
   display: ${props => props.isVisible ? 'block' : 'none'};
 `;
 
+export const AppContent = styled.div<{ introEnded: boolean }>`
+  opacity: ${props => props.introEnded ? 1 : 0};
+  visibility: ${props => props.introEnded ? 'visible' : 'hidden'};
+  animation: ${props => props.introEnded ? contentFadeIn : 'none'} 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+`;
+
 export const AppContainer = styled.div`
   width: 100vw;
   height: 100vh;
@@ -95,7 +132,7 @@ export const AppContainer = styled.div`
 `;
 
 export const HeaderWrapper = styled.header`
-  padding: 0.75rem 1.5rem;
+  padding: 0.85rem 1.5rem 0.75rem;
   background: linear-gradient(
     to bottom,
     rgba(0, 0, 0, 0.95) 0%,

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   AppContainer,
+  AppContent,
   GlobeContainer,
   ControlsPosition,
   ChatPosition,
@@ -17,7 +18,7 @@ import { ChatInterface } from './components/Chat/ChatInterface';
 import { AppProvider, useApp } from './context/AppContext';
 import { globeConfig, LayerType } from './config/globeConfig';
 
-const AppContent: React.FC = () => {
+const MainContent: React.FC = () => {
   const [countries, setCountries] = useState<{ features: CountryFeature[] }>({ features: [] });
   const [hoverD, setHoverD] = useState<CountryFeature | null>(null);
   const [isAutoRotating, setIsAutoRotating] = useState(true);
@@ -25,15 +26,25 @@ const AppContent: React.FC = () => {
   const [showIntro, setShowIntro] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showFullscreenMessage, setShowFullscreenMessage] = useState(true);
+  const [introEnded, setIntroEnded] = useState(false);
   const { currentApp, setAppData } = useApp();
 
+  // Handle intro animation timing
   useEffect(() => {
-    // Handle intro animation
-    const timer = setTimeout(() => {
+    // Show intro for 4 seconds
+    const introTimer = setTimeout(() => {
       setShowIntro(false);
-    }, 4000); // 4 seconds total for intro
+    }, 4000);
 
-    return () => clearTimeout(timer);
+    // Wait for intro to fade out (1s) then show content
+    const contentTimer = setTimeout(() => {
+      setIntroEnded(true);
+    }, 5000);
+
+    return () => {
+      clearTimeout(introTimer);
+      clearTimeout(contentTimer);
+    };
   }, []);
 
   // Handle fullscreen state
@@ -47,19 +58,18 @@ const AppContent: React.FC = () => {
 
   // Auto-dismiss fullscreen message after 2 seconds
   useEffect(() => {
-    const timer = setTimeout(() => {
+    const messageTimer = setTimeout(() => {
       setShowFullscreenMessage(false);
     }, 2000);
-    return () => clearTimeout(timer);
+    return () => clearTimeout(messageTimer);
   }, []);
 
+  // Fetch countries data
   useEffect(() => {
-    // Fetch countries data
     fetch('https://raw.githubusercontent.com/vasturiano/react-globe.gl/master/example/datasets/ne_110m_admin_0_countries.geojson')
       .then(res => res.json())
       .then(data => {
-        // Sort countries by name for consistent ordering
-        data.features.sort((a: CountryFeature, b: CountryFeature) => 
+        data.features.sort((a: CountryFeature, b: CountryFeature) =>
           a.properties.NAME.localeCompare(b.properties.NAME)
         );
         setCountries(data);
@@ -89,7 +99,6 @@ const AppContent: React.FC = () => {
 
   const handleAppSearch = async (appName: string) => {
     await setAppData(appName);
-    // Reset hover state when changing apps
     setHoverD(null);
   };
 
@@ -102,36 +111,38 @@ const AppContent: React.FC = () => {
       <FullscreenRecommendation isVisible={showFullscreenMessage}>
         For optimal viewing, click to enter fullscreen
       </FullscreenRecommendation>
-      <HeaderComponent
-        countries={countries}
-      />
-      <GlobeContainer>
-        <GlobeComponent
-          config={globeConfig}
+      <AppContent introEnded={introEnded}>
+        <HeaderComponent
           countries={countries}
-          banData={currentApp.banData}
-          hoverD={hoverD}
-          onPolygonClick={handlePolygonClick}
-          activeLayers={activeLayers}
-          isAutoRotating={isAutoRotating}
         />
-        <ControlsPosition>
-          <LayerControls
+        <GlobeContainer>
+          <GlobeComponent
+            config={globeConfig}
+            countries={countries}
+            banData={currentApp.banData}
+            hoverD={hoverD}
+            onPolygonClick={handlePolygonClick}
             activeLayers={activeLayers}
-            onLayerToggle={handleLayerToggle}
             isAutoRotating={isAutoRotating}
-            onRotateToggle={handleRotateToggle}
           />
-        </ControlsPosition>
-        <ChatPosition>
-          <ChatInterface onAppSearch={handleAppSearch} />
-        </ChatPosition>
-        <LegendComponent 
-          config={globeConfig}
-          countries={countries}
-          banData={currentApp.banData}
-        />
-      </GlobeContainer>
+          <ControlsPosition>
+            <LayerControls
+              activeLayers={activeLayers}
+              onLayerToggle={handleLayerToggle}
+              isAutoRotating={isAutoRotating}
+              onRotateToggle={handleRotateToggle}
+            />
+          </ControlsPosition>
+          <ChatPosition>
+            <ChatInterface onAppSearch={handleAppSearch} />
+          </ChatPosition>
+          <LegendComponent
+            config={globeConfig}
+            countries={countries}
+            banData={currentApp.banData}
+          />
+        </GlobeContainer>
+      </AppContent>
     </AppContainer>
   );
 };
@@ -139,7 +150,7 @@ const AppContent: React.FC = () => {
 const App: React.FC = () => {
   return (
     <AppProvider>
-      <AppContent />
+      <MainContent />
     </AppProvider>
   );
 };
