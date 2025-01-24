@@ -27,7 +27,7 @@ const MainContent: React.FC = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showFullscreenMessage, setShowFullscreenMessage] = useState(true);
   const [introEnded, setIntroEnded] = useState(false);
-  const { currentApp, setAppData } = useApp();
+  const { currentApp } = useApp();
 
   // Handle intro animation timing
   useEffect(() => {
@@ -97,16 +97,11 @@ const MainContent: React.FC = () => {
     setIsAutoRotating(prev => !prev);
   };
 
-  const handleAppSearch = async (appName: string) => {
-    await setAppData(appName);
-    setHoverD(null);
-  };
-
   return (
     <AppContainer>
       <IntroOverlay isVisible={showIntro}>
-        <IntroText>Welcome to TikTok Ban Globe</IntroText>
-        <IntroSubText>Discover the global landscape of TikTok regulations and restrictions across different countries</IntroSubText>
+        <IntroText>Global App Restrictions Globe</IntroText>
+        <IntroSubText>Discover global regulations and restrictions for various applications across different countries</IntroSubText>
       </IntroOverlay>
       <FullscreenRecommendation isVisible={showFullscreenMessage}>
         For optimal viewing, click to enter fullscreen
@@ -134,7 +129,7 @@ const MainContent: React.FC = () => {
             />
           </ControlsPosition>
           <ChatPosition>
-            <ChatInterface onAppSearch={handleAppSearch} />
+            <ChatInterface />
           </ChatPosition>
           <LegendComponent
             config={globeConfig}

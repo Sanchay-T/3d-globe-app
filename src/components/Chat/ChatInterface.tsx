@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import styled from 'styled-components';
+import { useApp } from '../../context/AppContext';
 
 const ChatContainer = styled.div`
   width: 100%;
@@ -14,12 +15,20 @@ const ChatContainer = styled.div`
   font-size: 0.85rem;
   overflow: hidden;
   position: relative;
+  transform: translate3d(0,0,0);
+  will-change: transform;
 `;
 
 const ChatHeader = styled.div`
   padding: 0.75rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   flex-shrink: 0;
+  background: inherit;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  height: 48px;
+  box-sizing: border-box;
 `;
 
 const ChatTitle = styled.h3`
@@ -32,20 +41,16 @@ const ChatTitle = styled.h3`
   -webkit-text-fill-color: transparent;
 `;
 
-const ChatMessagesWrapper = styled.div`
+const MessagesContainer = styled.div`
   flex: 1;
-  min-height: 0;
-  position: relative;
   overflow: hidden;
-  max-height: calc(100% - 110px); // Account for header and input
+  position: relative;
+  height: calc(100% - 112px); /* 48px header + 64px input */
+  min-height: 0;
 `;
 
 const ChatMessages = styled.div`
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  height: 100%;
   padding: 0.75rem;
   overflow-y: auto;
   display: flex;
@@ -67,14 +72,17 @@ const ChatMessages = styled.div`
   }
 `;
 
-const Message = styled.div<{ isUser: boolean }>`
+const Message = styled.div<{ isUser: boolean; isError?: boolean }>`
   padding: 0.6rem 0.8rem;
   border-radius: 8px;
   max-width: 85%;
   align-self: ${props => props.isUser ? 'flex-end' : 'flex-start'};
-  background: ${props => props.isUser ? 
-    'linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%)' : 
-    'rgba(255, 255, 255, 0.1)'};
+  background: ${props => {
+    if (props.isError) return 'linear-gradient(135deg, #ff4444 0%, #cc0000 100%)';
+    return props.isUser ? 
+      'linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%)' : 
+      'rgba(255, 255, 255, 0.1)';
+  }};
   color: white;
   font-size: 0.8rem;
   line-height: 1.4;
@@ -110,11 +118,15 @@ const InputContainer = styled.div`
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   gap: 0.5rem;
-  position: absolute;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  position: sticky;
   bottom: 0;
   left: 0;
   right: 0;
-  background: inherit;
+  z-index: 2;
+  height: 64px;
+  box-sizing: border-box;
 `;
 
 const Input = styled.input`
@@ -125,6 +137,8 @@ const Input = styled.input`
   padding: 0.6rem;
   color: white;
   font-size: 0.8rem;
+  margin: 0;
+  -webkit-appearance: none;
 
   &:focus {
     outline: none;
@@ -137,19 +151,22 @@ const Input = styled.input`
   }
 `;
 
-const SendButton = styled.button`
+const SendButton = styled.button<{ disabled?: boolean }>`
   background: linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%);
   border: none;
   border-radius: 6px;
   padding: 0 1rem;
   color: white;
-  cursor: pointer;
+  cursor: ${props => props.disabled ? 'not-allowed' : 'pointer'};
   transition: all 0.2s ease;
   font-size: 0.8rem;
+  opacity: ${props => props.disabled ? 0.5 : 1};
+  margin: 0;
+  -webkit-appearance: none;
 
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 2px 8px rgba(255, 75, 75, 0.4);
+    transform: ${props => props.disabled ? 'none' : 'translateY(-2px)'};
+    box-shadow: ${props => props.disabled ? 'none' : '0 2px 8px rgba(255, 75, 75, 0.4)'};
   }
 
   &:active {
@@ -161,13 +178,11 @@ interface Message {
   text: string;
   isUser: boolean;
   timestamp: number;
+  isError?: boolean;
 }
 
-interface ChatInterfaceProps {
-  onAppSearch: (appName: string) => void;
-}
-
-export const ChatInterface: React.FC<ChatInterfaceProps> = ({ onAppSearch }) => {
+export const ChatInterface: React.FC = () => {
+  const { setAppData, isLoading, error } = useApp();
   const [messages, setMessages] = useState<Message[]>([
     {
       text: "Enter an app name to see its global restrictions and regulations.",
@@ -177,17 +192,52 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ onAppSearch }) => 
   ]);
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<null | HTMLDivElement>(null);
+  const messagesRef = useRef<HTMLDivElement>(null);
+
+  const logDimensions = (event: string) => {
+    if (messagesRef.current) {
+      console.log(`[${event}] Messages Dimensions:`, {
+        height: messagesRef.current.offsetHeight,
+        scrollHeight: messagesRef.current.scrollHeight,
+        scrollTop: messagesRef.current.scrollTop,
+        clientHeight: messagesRef.current.clientHeight
+      });
+    }
+  };
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (messagesRef.current) {
+      messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
+    }
+    logDimensions('After Scroll');
   };
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
-  const handleSend = () => {
-    if (!input.trim()) return;
+  useEffect(() => {
+    if (isLoading) {
+      setMessages(prev => [...prev, {
+        text: "Searching for restrictions and regulations...",
+        isUser: false,
+        timestamp: Date.now()
+      }]);
+    } else if (error) {
+      setMessages(prev => [...prev, {
+        text: `Error: ${error}`,
+        isUser: false,
+        timestamp: Date.now(),
+        isError: true
+      }]);
+    }
+  }, [isLoading, error]);
+
+  const handleSubmit = async (e: React.MouseEvent | React.KeyboardEvent) => {
+    e.preventDefault();
+    logDimensions('Before Submit');
+    
+    if (!input.trim() || isLoading) return;
 
     const userMessage: Message = {
       text: input,
@@ -196,21 +246,27 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ onAppSearch }) => 
     };
 
     setMessages(prev => [...prev, userMessage]);
-    onAppSearch(input);
-
-    const botMessage: Message = {
-      text: `Searching for global restrictions and regulations for ${input}...`,
-      isUser: false,
-      timestamp: Date.now() + 1
-    };
-
-    setMessages(prev => [...prev, botMessage]);
+    const appName = input.trim();
     setInput('');
+    
+    try {
+      await setAppData(appName);
+      setMessages(prev => [...prev, {
+        text: `Found restriction data for ${appName}. You can now explore the data on the globe.`,
+        isUser: false,
+        timestamp: Date.now()
+      }]);
+    } catch {
+      // Error will be handled by the error useEffect above
+    }
+    
+    setTimeout(() => logDimensions('After Submit'), 100);
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
-      handleSend();
+      e.preventDefault();
+      handleSubmit(e);
     }
   };
 
@@ -219,24 +275,31 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ onAppSearch }) => 
       <ChatHeader>
         <ChatTitle>Global App Restrictions Assistant</ChatTitle>
       </ChatHeader>
-      <ChatMessagesWrapper>
-        <ChatMessages>
-          {messages.map((message, index) => (
-            <Message key={message.timestamp} isUser={message.isUser}>
+      <MessagesContainer>
+        <ChatMessages ref={messagesRef}>
+          {messages.map((message) => (
+            <Message 
+              key={message.timestamp} 
+              isUser={message.isUser}
+              isError={message.isError}
+            >
               {message.text}
             </Message>
           ))}
           <div ref={messagesEndRef} />
         </ChatMessages>
-      </ChatMessagesWrapper>
+      </MessagesContainer>
       <InputContainer>
         <Input
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          onKeyPress={handleKeyPress}
+          onKeyDown={handleKeyDown}
           placeholder="Enter an app name..."
+          disabled={isLoading}
         />
-        <SendButton onClick={handleSend}>Send</SendButton>
+        <SendButton onClick={handleSubmit} disabled={isLoading}>
+          Send
+        </SendButton>
       </InputContainer>
     </ChatContainer>
   );

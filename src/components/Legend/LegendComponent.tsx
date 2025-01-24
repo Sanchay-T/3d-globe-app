@@ -4,6 +4,7 @@ import { GlobeConfig } from '../../config/globeConfig';
 import { CountryFeature } from '../Globe/GlobeComponent';
 import { TiktokBanData } from '../../data/tiktokBanData';
 import { LegendPosition } from '../styled/StyledComponents';
+import { useApp } from '../../context/AppContext';
 
 const LegendContainer = styled.div`
   background: rgba(0, 0, 0, 0.8);
@@ -101,23 +102,24 @@ export const LegendComponent: React.FC<LegendComponentProps> = ({
   countries,
   banData
 }) => {
+  const { currentApp } = useApp();
   const completeBans = banData.filter(d => d.type === 'complete').length;
   const partialBans = banData.filter(d => d.type === 'partial').length;
   const noRestrictions = countries.features.length - (completeBans + partialBans);
 
   const statuses = [
     {
-      label: 'Complete Ban',
+      label: 'National Ban',
       color: config.colors.completeBan,
       count: completeBans
     },
     {
-      label: 'Partial Restrictions',
+      label: 'Government Restrictions',
       color: config.colors.partialBan,
       count: partialBans
     },
     {
-      label: 'No Restrictions',
+      label: 'No Official Restrictions',
       color: config.colors.noRestriction,
       count: noRestrictions
     }
@@ -126,7 +128,7 @@ export const LegendComponent: React.FC<LegendComponentProps> = ({
   return (
     <LegendPosition>
       <LegendContainer>
-        <Title>Global Restrictions</Title>
+        <Title>{currentApp.name ? `${currentApp.name} Restrictions` : 'Global Restrictions'}</Title>
         <StatusList>
           {statuses.map(status => (
             <StatusItem key={status.label}>

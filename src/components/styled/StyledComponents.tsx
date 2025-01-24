@@ -169,6 +169,33 @@ export const ChatPosition = styled.div`
   height: ${getSafeHeight()};
   display: flex;
   flex-direction: column;
+  border-radius: 12px;
+  overflow: hidden;
+  transform: translate3d(0,0,0);
+  perspective: 1000px;
+  backface-visibility: hidden;
+  -webkit-transform-style: preserve-3d;
+  -webkit-backface-visibility: hidden;
+  will-change: transform;
+  
+  /* Prevent iOS rubber-band scroll */
+  overscroll-behavior: none;
+  touch-action: none;
+  
+  /* Prevent any content from overflowing */
+  & > div {
+    max-height: 100%;
+    overflow: hidden;
+  }
+
+  /* Force GPU acceleration */
+  @media (min-width: 0) {
+    transform: translate3d(0,0,0);
+  }
+  
+  @supports (-webkit-touch-callout: none) {
+    bottom: max(${LAYOUT_CONFIG.safeBottomMargin}, env(safe-area-inset-bottom));
+  }
 `;
 
 export const ControlsPosition = styled.div`
