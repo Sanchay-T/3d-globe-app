@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useMemo, useState } from 'react';
+import React, { useEffect, useRef, useMemo, useState, useCallback } from 'react';
 import Globe from 'react-globe.gl';
 import { GlobeConfig, getCountryColor, LayerType } from '../../config/globeConfig';
 import { TiktokBanData } from '../../data/tiktokBanData';
@@ -69,6 +69,32 @@ export const GlobeComponent: React.FC<GlobeComponentProps> = ({
   isAutoRotating
 }) => {
   const globeRef = useRef<any>();
+  const [revealedCountries, setRevealedCountries] = useState<Set<string>>(new Set());
+
+  // Reset revealed countries when ban data changes
+  useEffect(() => {
+    setRevealedCountries(new Set());
+    
+    const timeouts: number[] = [];
+    
+    // Reveal countries one by one with delay
+    const countriesToReveal = banData.map(data => data.country);
+    countriesToReveal.forEach((country, index) => {
+      const timeout = window.setTimeout(() => {
+        setRevealedCountries(prev => {
+          const newSet = new Set(prev);
+          newSet.add(country);
+          return newSet;
+        });
+      }, index * 200); // 400ms delay between each country for smoother animation
+      timeouts.push(timeout);
+    });
+
+    // Cleanup function
+    return () => {
+      timeouts.forEach(timeout => window.clearTimeout(timeout));
+    };
+  }, [banData]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -158,7 +184,22 @@ export const GlobeComponent: React.FC<GlobeComponentProps> = ({
     
     // Regular polygons for countries
     polygonsData: countries.features,
-    polygonCapColor: (obj: any) => getCountryColor(obj?.properties?.NAME || '', banData),
+    polygonCapColor: (obj: any) => {
+      const countryName = obj?.properties?.NAME || '';
+      if (!revealedCountries.has(countryName)) {
+        return 'rgba(40, 40, 40, 0.3)'; // Default transparent dark color for unrevealed countries
+      }
+      const color = getCountryColor(countryName, banData);
+      // Convert hex to rgba with transition
+      const opacity = revealedCountries.has(countryName) ? 1 : 0.3;
+      if (color.startsWith('#')) {
+        const r = parseInt(color.slice(1, 3), 16);
+        const g = parseInt(color.slice(3, 5), 16);
+        const b = parseInt(color.slice(5, 7), 16);
+        return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+      }
+      return color;
+    },
     polygonSideColor: () => 'rgba(0, 0, 0, 0.15)',
     polygonStrokeColor: () => '#111',
     polygonLabel: getLabel,
@@ -194,7 +235,15 @@ export const GlobeComponent: React.FC<GlobeComponentProps> = ({
     atmosphereColor: config.atmosphere.color,
     atmosphereAltitude: config.atmosphere.altitude,
     showGraticules: true,
-    animateIn: true
+    animateIn: true,
+    
+    // Animation and rendering settings
+    polygonsTransitionDuration: 800,
+    rendererConfig: {
+      transparent: true,
+      alpha: true,
+      antialias: true
+    }
   };
 
   return <Globe {...globeProps} />;
